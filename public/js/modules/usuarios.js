@@ -53,6 +53,8 @@ window.Routes.usuarios = {
       document.getElementById('btnNew').onclick = () => openForm();
       view.querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => openForm(users.find((u) => u.id == b.dataset.edit)));
       view.querySelectorAll('[data-del]').forEach((b)  => b.onclick = () => remove(b.dataset.del));
+
+      U.initIcons(view);
     }
 
     function openForm(u = null) {

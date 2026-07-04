@@ -61,6 +61,8 @@ window.Routes.productos = {
       view.querySelectorAll('[data-edit]').forEach((b)  => (b.onclick = () => openForm(products.find((p) => p.id == b.dataset.edit))));
       view.querySelectorAll('[data-del]').forEach((b)   => (b.onclick = () => remove(b.dataset.del)));
       view.querySelectorAll('[data-stock]').forEach((b) => (b.onclick = () => openStock(products.find((p) => p.id == b.dataset.stock))));
+
+      U.initIcons(view);
     }
 
     function openStock(p) {

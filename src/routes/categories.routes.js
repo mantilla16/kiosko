@@ -49,6 +49,16 @@ router.post('/:id/subcategories', ah(async (req, res) => {
   res.status(201).json(sub);
 }));
 
+// Renombrar subcategoría
+router.put('/subcategories/:subId', ah(async (req, res) => {
+  const sub = await prisma.subcategory.findUnique({ where: { id: Number(req.params.subId) }, include: { category: true } });
+  if (!sub || sub.category.kioskId !== req.kioskId) throw new ApiError(404, 'Subcategoría no encontrada.');
+  const { name } = req.body;
+  if (!name || !name.trim()) throw new ApiError(400, 'El nombre de la subcategoría es obligatorio.');
+  const updated = await prisma.subcategory.update({ where: { id: sub.id }, data: { name: name.trim() } });
+  res.json(updated);
+}));
+
 router.delete('/subcategories/:subId', ah(async (req, res) => {
   // Verificar que la subcategoría pertenezca a una categoría del kiosko activo
   const sub = await prisma.subcategory.findUnique({ where: { id: Number(req.params.subId) }, include: { category: true } });

@@ -39,6 +39,8 @@ window.Routes.kioskos = {
       }));
       view.querySelectorAll('[data-edit]').forEach((b) => (b.onclick = () => openForm(kiosks.find((k) => k.id == b.dataset.edit))));
       view.querySelectorAll('[data-del]').forEach((b)  => (b.onclick = () => remove(kiosks.find((k) => k.id == b.dataset.del))));
+
+      U.initIcons(view);
     }
 
     function openForm(k = null) {

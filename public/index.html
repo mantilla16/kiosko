@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema del Kiosco · Caballeriza</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ===== PANTALLA DE LOGIN ===== -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-card">
+      <div class="login-brand">
+        <span class="login-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 21v-9a6 6 0 0 1 12 0v9"/><path d="M4 21h4M16 21h4"/>
+          </svg>
+        </span>
+        <div>
+          <strong>Kiosco Caballeriza</strong>
+          <small>Sistema de Gestión</small>
+        </div>
+      </div>
+      <h2 class="login-title">Iniciar sesión</h2>
+      <p class="login-sub">Ingresa tus credenciales para continuar.</p>
+      <form id="loginForm" autocomplete="on">
+        <div class="field">
+          <label>Usuario</label>
+          <input id="loginUser" type="text" placeholder="usuario" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+        <div id="loginError" class="login-error" hidden></div>
+        <button class="btn primary login-btn" type="submit" id="loginBtn">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== APLICACIÓN PRINCIPAL ===== -->
+  <div class="app" id="appShell" hidden>
+    <!-- Barra lateral -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="brand-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 21v-9a6 6 0 0 1 12 0v9"/><path d="M4 21h4M16 21h4"/>
+          </svg>
+        </span>
+        <div>
+          <strong>Kiosco</strong>
+          <small>Caballeriza</small>
+        </div>
+      </div>
+      <nav class="nav" id="nav">
+        <a href="#/dashboard"  data-route="dashboard"><span class="ico"><i data-lucide="layout-dashboard"></i></span> Panel</a>
+        <p class="nav-group">Catálogo</p>
+        <a href="#/productos"  data-route="productos"><span class="ico"><i data-lucide="package"></i></span> Productos</a>
+        <a href="#/categorias" data-route="categorias"><span class="ico"><i data-lucide="tag"></i></span> Categorías</a>
+        <p class="nav-group">Movimientos</p>
+        <a href="#/compras"    data-route="compras"><span class="ico"><i data-lucide="arrow-down-to-line"></i></span> Compras</a>
+        <a href="#/ventas"     data-route="ventas"><span class="ico"><i data-lucide="shopping-cart"></i></span> Ventas</a>
+        <a href="#/inventario" data-route="inventario"><span class="ico"><i data-lucide="clipboard-list"></i></span> Control Inventario</a>
+        <a href="#/fisico"     data-route="fisico"><span class="ico"><i data-lucide="scan-search"></i></span> Inventario Físico</a>
+        <a href="#/kardex"     data-route="kardex"><span class="ico"><i data-lucide="file-text"></i></span> Kardex</a>
+        <p class="nav-group">Cartera</p>
+        <a href="#/creditos"   data-route="creditos"><span class="ico"><i data-lucide="credit-card"></i></span> Créditos</a>
+        <p class="nav-group">Análisis</p>
+        <a href="#/reportes"   data-route="reportes"><span class="ico"><i data-lucide="bar-chart-2"></i></span> Reportes</a>
+        <p class="nav-group admin-group">Administración</p>
+        <a href="#/kioskos"   data-route="kioskos"  class="admin-link"><span class="ico"><i data-lucide="store"></i></span> Kioskos</a>
+        <a href="#/usuarios"  data-route="usuarios" class="admin-link"><span class="ico"><i data-lucide="users"></i></span> Usuarios</a>
+      </nav>
+      <div class="sidebar-footer">v1.0 · 2026</div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <div class="main">
+      <header class="topbar">
+        <button class="hamburger" id="hamburger">
+          <i data-lucide="menu"></i>
+        </button>
+        <h1 id="viewTitle">Panel</h1>
+        <div class="topbar-right">
+          <div class="kiosk-picker">
+            <i data-lucide="store" class="kiosk-ico"></i>
+            <select id="kioskSelect" title="Kiosko activo"></select>
+          </div>
+          <span class="today" id="todayLabel"></span>
+          <div class="user-chip" id="userChip">
+            <span class="user-avatar" id="userAvatar"></span>
+            <div class="user-info">
+              <span class="user-name" id="userName"></span>
+              <span class="user-role" id="userRole"></span>
+            </div>
+            <button class="btn-logout" id="btnLogout" title="Cerrar sesión">
+              <i data-lucide="log-out"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+      <main class="view" id="view"></main>
+    </div>
+  </div>
+
+  <!-- Modal genérico -->
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal" id="modal"></div>
+  </div>
+
+  <!-- Notificaciones -->
+  <div class="toasts" id="toasts"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/modules/dashboard.js"></script>
+  <script src="js/modules/productos.js"></script>
+  <script src="js/modules/categorias.js"></script>
+  <script src="js/modules/compras.js"></script>
+  <script src="js/modules/ventas.js"></script>
+  <script src="js/modules/inventario.js"></script>
+  <script src="js/modules/fisico.js"></script>
+  <script src="js/modules/kardex.js"></script>
+  <script src="js/modules/creditos.js"></script>
+  <script src="js/modules/reportes.js"></script>
+  <script src="js/modules/kioskos.js"></script>
+  <script src="js/modules/usuarios.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

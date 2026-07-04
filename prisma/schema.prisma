@@ -1,0 +1,226 @@
+// =====================================================
+//  Esquema de base de datos - Sistema del Kiosco
+//  Motor: PostgreSQL  |  ORM: Prisma
+//  Multi-kiosko: cada registro pertenece a un Kiosk (kioskId)
+// =====================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------- Kioskos (espacios) -------------------
+
+model Kiosk {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  categories          Category[]
+  products            Product[]
+  purchases           Purchase[]
+  sales               Sale[]
+  customers           Customer[]
+  movements           StockMovement[]
+  physicalInventories PhysicalInventory[]
+}
+
+// ------------------- Catálogo -------------------
+
+model Category {
+  id            Int           @id @default(autoincrement())
+  name          String
+  kioskId       Int
+  kiosk         Kiosk         @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  subcategories Subcategory[]
+  products      Product[]
+  createdAt     DateTime      @default(now())
+
+  @@unique([kioskId, name])
+}
+
+model Subcategory {
+  id         Int       @id @default(autoincrement())
+  name       String
+  categoryId Int
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  products   Product[]
+
+  @@unique([categoryId, name])
+}
+
+model Product {
+  id            Int          @id @default(autoincrement())
+  kioskId       Int
+  kiosk         Kiosk        @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  code          String // Código del producto (ej: B001) — único por kiosko
+  name          String
+  categoryId    Int?
+  category      Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  subcategoryId Int?
+  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  unit          String       @default("Unidad")
+  supplier      String?
+  cost          Float        @default(0)
+  price         Float        @default(0)
+  minStock      Int          @default(0)
+  stock         Int          @default(0)
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  purchases     Purchase[]
+  saleItems     SaleItem[]
+  movements     StockMovement[]
+  physicalItems PhysicalInventoryItem[]
+
+  @@unique([kioskId, code])
+}
+
+// ------------------- Compras -------------------
+
+model Purchase {
+  id        Int      @id @default(autoincrement())
+  kioskId   Int
+  kiosk     Kiosk    @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  date      DateTime @default(now())
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitCost  Float
+  total     Float
+  supplier  String?
+  createdAt DateTime @default(now())
+}
+
+// ------------------- Ventas y Cartera -------------------
+
+enum SaleType {
+  CASH
+  CREDIT
+}
+
+enum SaleStatus {
+  PAID
+  PARTIAL
+  PENDING
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  kioskId   Int
+  kiosk     Kiosk    @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String?
+  notes     String?
+  sales     Sale[]
+  createdAt DateTime @default(now())
+
+  @@unique([kioskId, name])
+}
+
+model Sale {
+  id         Int         @id @default(autoincrement())
+  kioskId    Int
+  kiosk      Kiosk       @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  date       DateTime    @default(now())
+  type       SaleType    @default(CASH)
+  total      Float
+  customerId Int?
+  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  dueDate    DateTime?
+  status     SaleStatus?
+  items      SaleItem[]
+  payments   Payment[]
+  createdAt  DateTime    @default(now())
+}
+
+model SaleItem {
+  id        Int     @id @default(autoincrement())
+  saleId    Int
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+  total     Float
+}
+
+model Payment {
+  id     Int      @id @default(autoincrement())
+  saleId Int
+  sale   Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  date   DateTime @default(now())
+  amount Float
+}
+
+// ------------------- Kardex (movimientos) -------------------
+
+enum MovementType {
+  INITIAL
+  PURCHASE
+  SALE
+  ADJUSTMENT
+}
+
+model StockMovement {
+  id          Int          @id @default(autoincrement())
+  kioskId     Int
+  kiosk       Kiosk        @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  productId   Int
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  date        DateTime     @default(now())
+  type        MovementType
+  quantityIn  Int          @default(0)
+  quantityOut Int          @default(0)
+  reference   String?
+  createdAt   DateTime     @default(now())
+}
+
+// ------------------- Usuarios y autenticación -------------------
+
+enum Role {
+  ADMIN
+  OPERADOR
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  name      String
+  role      Role     @default(OPERADOR)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ------------------- Inventario físico -------------------
+
+model PhysicalInventory {
+  id        Int                     @id @default(autoincrement())
+  kioskId   Int
+  kiosk     Kiosk                   @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  date      DateTime                @default(now())
+  note      String?
+  status    String                  @default("DRAFT")
+  items     PhysicalInventoryItem[]
+  createdAt DateTime                @default(now())
+}
+
+model PhysicalInventoryItem {
+  id          Int               @id @default(autoincrement())
+  inventoryId Int
+  inventory   PhysicalInventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  productId   Int
+  product     Product           @relation(fields: [productId], references: [id])
+  systemQty   Int
+  physicalQty Int
+  difference  Int
+  observation String?
+}

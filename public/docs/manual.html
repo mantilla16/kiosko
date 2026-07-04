@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Manual del Sistema · Kiosco Caballeriza</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --primary: #4f46e5;
+  --primary-soft: #eef0fe;
+  --text: #1a1d24;
+  --text-2: #5b6472;
+  --muted: #8a93a2;
+  --border: #e7e9ee;
+  --surface: #fff;
+  --bg: #f4f5f7;
+  --green: #0f9d58; --green-soft: #e6f6ee;
+  --amber: #d97706; --amber-soft: #fdf3e3;
+  --red: #e11d48;   --red-soft: #fdeef1;
+  --blue: #2563eb;  --blue-soft: #e8f0ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--primary);text-decoration:none}
+
+/* ---- Portada ---- */
+.cover{
+  background:linear-gradient(135deg,#0f1117 0%,#14161d 55%,#1c1f29 100%);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:60px 40px;color:#fff;page-break-after:always;
+}
+.cover-logo{
+  width:80px;height:80px;background:linear-gradient(145deg,#4f46e5,#6366f1);
+  border-radius:22px;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 28px;box-shadow:0 12px 40px rgba(79,70,229,.5);
+}
+.cover-logo svg{width:42px;height:42px;color:#fff}
+.cover h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:42px;font-weight:800;letter-spacing:-0.03em;margin-bottom:12px}
+.cover p{color:#9aa3b2;font-size:17px;max-width:540px;margin:0 auto 32px}
+.cover-meta{display:flex;gap:32px;justify-content:center;margin-top:48px}
+.cover-meta span{color:#5a6473;font-size:13px}
+.cover-meta strong{color:#9aa3b2}
+.cover-badge{background:rgba(79,70,229,.2);border:1px solid rgba(99,102,241,.3);color:#818cf8;
+  padding:6px 18px;border-radius:999px;font-size:13px;font-weight:600;margin-bottom:20px;display:inline-block}
+
+/* ---- Layout general ---- */
+.page{max-width:900px;margin:0 auto;padding:60px 40px}
+
+/* ---- TOC ---- */
+.toc-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px 40px;margin-bottom:40px}
+.toc-section h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;margin-bottom:20px}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 32px}
+.toc-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);color:var(--text-2);font-size:13.5px}
+.toc-item strong{color:var(--text)}
+.toc-num{font-weight:700;color:var(--primary);min-width:22px;font-size:12px}
+
+/* ---- Secciones ---- */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:36px 40px;margin-bottom:32px;page-break-inside:avoid}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.section-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-icon svg{width:22px;height:22px;color:#fff}
+.section h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.02em}
+.section-sub{color:var(--muted);font-size:13px;margin-top:2px}
+
+/* ---- Screenshot placeholder ---- */
+.screenshot{
+  background:var(--bg);border:2px dashed var(--border);border-radius:12px;
+  min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--muted);margin:20px 0;text-align:center;gap:8px;
+}
+.screenshot svg{width:32px;height:32px;opacity:.4}
+.screenshot span{font-size:12px}
+.screenshot img{width:100%;border-radius:10px;display:block}
+
+/* ---- Contenido de sección ---- */
+.feature-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin:16px 0}
+.feature-list li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--text-2)}
+.feature-list li::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--primary);margin-top:7px;flex-shrink:0}
+.feature-list li strong{color:var(--text)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{background:var(--primary-soft);color:var(--primary);padding:4px 12px;border-radius:999px;font-size:12px;font-weight:600}
+.chip.green{background:var(--green-soft);color:var(--green)}
+.chip.amber{background:var(--amber-soft);color:var(--amber)}
+.chip.red{background:var(--red-soft);color:var(--red)}
+.chip.blue{background:var(--blue-soft);color:var(--blue)}
+.chip.gray{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+
+/* ---- Tabla de roles ---- */
+.role-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+.role-table th{background:var(--bg);padding:10px 14px;text-align:left;font-weight:600;color:var(--text-2);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.role-table td{padding:10px 14px;border-bottom:1px solid var(--border)}
+.role-table tr:last-child td{border-bottom:none}
+.check{color:var(--green);font-weight:700}
+.cross{color:var(--red);font-weight:700}
+
+/* ---- Flujo de acciones ---- */
+.flow{display:flex;align-items:center;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-step{background:var(--primary-soft);color:var(--primary);padding:7px 14px;border-radius:8px;font-size:12.5px;font-weight:600}
+.flow-arrow{color:var(--muted);padding:0 8px;font-size:18px;font-weight:300}
+
+/* ---- Info box ---- */
+.info-box{background:var(--primary-soft);border:1px solid rgba(79,70,229,.2);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:13px;color:var(--primary)}
+.warning-box{background:var(--amber-soft);border:1px solid rgba(217,119,6,.2);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:13px;color:var(--amber)}
+.success-box{background:var(--green-soft);border:1px solid rgba(15,157,88,.2);border-radius:10px;padding:14px 18px;margin:14px 0;font-size:13px;color:var(--green)}
+
+/* ---- Footer ---- */
+.doc-footer{text-align:center;color:var(--muted);font-size:12px;padding:40px;border-top:1px solid var(--border)}
+
+/* ---- Print ---- */
+@media print{
+  body{background:#fff}
+  .page{padding:30px 20px}
+  .section,.toc-section{break-inside:avoid}
+  .cover{page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<!-- ======== PORTADA ======== -->
+<div class="cover">
+  <div class="cover-badge">Documentación Técnica v1.0</div>
+  <div class="cover-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 21v-9a6 6 0 0 1 12 0v9"/><path d="M4 21h4M16 21h4"/>
+    </svg>
+  </div>
+  <h1>Sistema del Kiosco</h1>
+  <p>Plataforma de gestión integral de inventario, ventas, compras, cartera y reportes para el Kiosco de la Caballeriza.</p>
+  <div class="cover-meta">
+    <span><strong>Versión</strong><br/>1.0.0</span>
+    <span><strong>Tecnología</strong><br/>Node.js · PostgreSQL · Prisma</span>
+    <span><strong>Fecha</strong><br/>Junio 2026</span>
+    <span><strong>Puerto</strong><br/>http://localhost:3000</span>
+  </div>
+</div>
+
+<!-- ======== CONTENIDO ======== -->
+<div class="page">
+
+  <!-- TOC -->
+  <div class="toc-section">
+    <h2>Contenido</h2>
+    <div class="toc-grid">
+      <div class="toc-item"><span class="toc-num">01</span><span><strong>Acceso al sistema</strong> — Login y roles</span></div>
+      <div class="toc-item"><span class="toc-num">08</span><span><strong>Control de Inventario</strong> — Existencias en tiempo real</span></div>
+      <div class="toc-item"><span class="toc-num">02</span><span><strong>Panel principal</strong> — KPIs y alertas</span></div>
+      <div class="toc-item"><span class="toc-num">09</span><span><strong>Inventario Físico</strong> — Conteos y ajustes</span></div>
+      <div class="toc-item"><span class="toc-num">03</span><span><strong>Productos</strong> — Catálogo y ajuste de stock</span></div>
+      <div class="toc-item"><span class="toc-num">10</span><span><strong>Kardex</strong> — Historial de movimientos</span></div>
+      <div class="toc-item"><span class="toc-num">04</span><span><strong>Categorías</strong> — Organización del catálogo</span></div>
+      <div class="toc-item"><span class="toc-num">11</span><span><strong>Créditos / Cartera</strong> — Cobros y abonos</span></div>
+      <div class="toc-item"><span class="toc-num">05</span><span><strong>Compras</strong> — Entradas de mercancía</span></div>
+      <div class="toc-item"><span class="toc-num">12</span><span><strong>Reportes</strong> — Análisis e informes</span></div>
+      <div class="toc-item"><span class="toc-num">06</span><span><strong>Ventas</strong> — Contado y crédito</span></div>
+      <div class="toc-item"><span class="toc-num">13</span><span><strong>Kioskos</strong> — Espacios independientes</span></div>
+      <div class="toc-item"><span class="toc-num">07</span><span><strong>Usuarios</strong> — Gestión de accesos</span></div>
+      <div class="toc-item"><span class="toc-num">14</span><span><strong>Arquitectura técnica</strong> — Stack y base de datos</span></div>
+    </div>
+  </div>
+
+  <!-- 01 ACCESO -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#4f46e5,#6366f1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div><h2>01 · Acceso al sistema</h2><div class="section-sub">Autenticación y control de roles</div></div>
+    </div>
+
+    <p style="color:var(--text-2);margin-bottom:16px">Al ingresar a <strong>http://localhost:3000</strong> el sistema muestra una pantalla de inicio de sesión antes de acceder a cualquier módulo.</p>
+
+    <div class="screenshot"><img src="img/01-login.jpg" alt="Pantalla de login"/></div>
+
+    <div class="chips">
+      <span class="chip">JWT · 24h de sesión</span>
+      <span class="chip">Contraseña cifrada con bcrypt</span>
+      <span class="chip">Cierre de sesión manual</span>
+    </div>
+
+    <p style="margin:16px 0 10px;font-weight:600">Credenciales por defecto</p>
+    <div class="info-box">Usuario: <strong>admin</strong> &nbsp;|&nbsp; Contraseña: <strong>admin123</strong> &nbsp;|&nbsp; Rol: <strong>Administrador</strong></div>
+
+    <p style="margin:20px 0 12px;font-weight:600">Roles del sistema</p>
+    <table class="role-table">
+      <thead><tr><th>Módulo</th><th>Administrador</th><th>Operador</th></tr></thead>
+      <tbody>
+        <tr><td>Panel, Productos, Categorías</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Compras, Ventas, Inventario</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Inventario Físico, Kardex</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Créditos / Cartera</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Reportes</td><td class="check">✓</td><td class="check">✓</td></tr>
+        <tr><td>Gestión de Usuarios</td><td class="check">✓</td><td class="cross">✗</td></tr>
+        <tr><td>Administración de Kioskos</td><td class="check">✓ (crear/editar/borrar)</td><td class="chip gray" style="display:inline-block;padding:2px 8px">Solo lectura</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 02 PANEL -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#0f9d58,#16a34a)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      </div>
+      <div><h2>02 · Panel principal</h2><div class="section-sub">Vista de KPIs y alertas en tiempo real</div></div>
+    </div>
+    <p style="color:var(--text-2);margin-bottom:16px">El panel es la vista de inicio. Muestra los indicadores más importantes del kiosko activo actualizados en tiempo real.</p>
+
+    <div class="screenshot"><img src="img/02-dashboard.jpg" alt="Panel principal con KPIs"/></div>
+
+    <p style="margin:16px 0 10px;font-weight:600">Tarjetas KPI disponibles</p>
+    <ul class="feature-list">
+      <li><strong>Ventas de hoy</strong> — Total en pesos y número de transacciones del día actual.</li>
+      <li><strong>Por cobrar (cartera)</strong> — Suma de todos los créditos pendientes y número de clientes con saldo.</li>
+      <li><strong>Productos por agotarse</strong> — Cantidad de productos en o por debajo del stock mínimo configurado.</li>
+      <li><strong>Productos activos</strong> — Productos habilitados para venta sobre el total del catálogo.</li>
+      <li><strong>Valor inventario (costo)</strong> — Capital invertido en mercancía (stock × costo de compra).</li>
+      <li><strong>Valor inventario (venta)</strong> — Valor potencial si se vende todo el stock (stock × precio de venta).</li>
+    </ul>
+
+    <div class="success-box">El panel también muestra la tabla de productos por agotarse con acceso rápido al reporte completo.</div>
+  </div>
+
+  <!-- 03 PRODUCTOS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#2563eb,#3b82f6)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      </div>
+      <div><h2>03 · Productos</h2><div class="section-sub">Catálogo completo y ajuste de stock</div></div>
+    </div>
+
+    <div class="screenshot"><img src="img/03-productos.jpg" alt="Listado de productos"/></div>
+
+    <p style="margin:0 0 10px;font-weight:600">Campos del producto</p>
+    <div class="chips">
+      <span class="chip">Código único</span><span class="chip">Nombre</span><span class="chip">Categoría / Subcategoría</span>
+      <span class="chip">Unidad de medida</span><span class="chip">Proveedor</span><span class="chip">Costo de compra</span>
+      <span class="chip">Precio de venta</span><span class="chip">Stock mínimo</span><span class="chip">Stock actual</span><span class="chip">Estado (activo/inactivo)</span>
+    </div>
+
+    <p style="margin:16px 0 10px;font-weight:600">Funcionalidades</p>
+    <ul class="feature-list">
+      <li><strong>Buscar</strong> por nombre o código en tiempo real (debounce 350ms).</li>
+      <li><strong>Filtrar</strong> por categoría desde el selector.</li>
+      <li><strong>Crear producto</strong> con stock inicial opcional (queda registrado en el kardex como "Stock inicial").</li>
+      <li><strong>Editar</strong> todos los campos excepto el stock (el stock solo cambia por compras, ventas o ajustes).</li>
+      <li><strong>Ajustar stock manualmente</strong> — entrada o salida con motivo opcional. Queda registrado en el kardex.</li>
+      <li><strong>Eliminar producto</strong> — si tiene historial, solicita confirmación doble. Con "Forzar" elimina también todo el historial.</li>
+      <li>El stock se resalta en <span style="color:var(--red)">rojo</span> cuando está en o bajo el mínimo.</li>
+    </ul>
+
+    <div class="screenshot"><img src="img/03-productos.jpg" alt="Modal de ajuste de stock"/></div>
+  </div>
+
+  <!-- 04 CATEGORÍAS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#d97706,#f59e0b)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      </div>
+      <div><h2>04 · Categorías</h2><div class="section-sub">Organización jerárquica del catálogo</div></div>
+    </div>
+    <ul class="feature-list">
+      <li><strong>Categorías principales</strong> — con nombre único por kiosko. Muestra cuántos productos tiene cada una.</li>
+      <li><strong>Subcategorías</strong> — cada categoría puede tener múltiples subcategorías. Se asignan a los productos en el formulario de creación/edición.</li>
+      <li>Eliminar categoría o subcategoría directamente desde las tarjetas de la vista.</li>
+    </ul>
+    <div class="screenshot"><img src="img/04-categorias.jpg" alt="Gestión de categorías"/></div>
+    <div class="info-box">Las categorías por defecto al crear un kiosko son: Bebidas, Snacks, Dulces, Caballistas, Insumos (cada una con sus subcategorías).</div>
+  </div>
+
+  <!-- 05 COMPRAS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#0891b2,#06b6d4)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22V8M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M12 2l3 6H9l3-6z"/></svg>
+      </div>
+      <div><h2>05 · Compras</h2><div class="section-sub">Registro de entradas de mercancía</div></div>
+    </div>
+    <p style="color:var(--text-2);margin-bottom:16px">Cada compra registrada <strong>incrementa automáticamente el stock</strong> del producto y genera un movimiento COMPRA en el kardex.</p>
+
+    <div class="flow">
+      <span class="flow-step">Seleccionar producto</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Ingresar cantidad y precio</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Guardar</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Stock actualizado + Kardex registrado</span>
+    </div>
+
+    <ul class="feature-list" style="margin-top:16px">
+      <li><strong>Fecha</strong> configurable (no forzado a hoy).</li>
+      <li><strong>Proveedor</strong> se pre-llena con el proveedor configurado en el producto (editable por transacción).</li>
+      <li>El valor total se calcula automáticamente: <em>cantidad × valor unitario</em>.</li>
+      <li>Historial completo de todas las compras con fecha, producto, cantidades, valores y proveedor.</li>
+    </ul>
+    <div class="screenshot"><img src="img/05-compras.jpg" alt="Registro de compras"/></div>
+    <div class="success-box">Todas las operaciones se ejecutan en una transacción de base de datos: si algo falla, ni el stock ni el kardex se modifican.</div>
+  </div>
+
+  <!-- 06 VENTAS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#16a34a,#22c55e)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      </div>
+      <div><h2>06 · Ventas</h2><div class="section-sub">Registro de ventas a contado y a crédito</div></div>
+    </div>
+
+    <div class="screenshot"><img src="img/06-ventas.jpg" alt="Módulo de ventas con carrito"/></div>
+
+    <p style="margin:0 0 10px;font-weight:600">Tipos de venta</p>
+    <div class="chips">
+      <span class="chip green">Contado — pago inmediato</span>
+      <span class="chip amber">Crédito — queda en cartera</span>
+    </div>
+
+    <ul class="feature-list" style="margin-top:16px">
+      <li>Carrito de compra con múltiples productos en una sola venta.</li>
+      <li>Validación de stock en tiempo real: no permite vender más de lo disponible.</li>
+      <li>Para ventas a crédito: se registra el cliente (nuevo o existente) y la fecha límite de pago.</li>
+      <li>Cada ítem vendido <strong>decrementa el stock automáticamente</strong> y genera un movimiento VENTA en el kardex.</li>
+      <li>El precio unitario se pre-llena con el precio configurado en el producto (editable).</li>
+    </ul>
+  </div>
+
+  <!-- 07 USUARIOS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#7c3aed,#8b5cf6)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div><h2>07 · Gestión de Usuarios</h2><div class="section-sub">Exclusivo para Administradores</div></div>
+    </div>
+
+    <div class="warning-box">Este módulo solo es visible y accesible para usuarios con rol <strong>Administrador</strong>.</div>
+
+    <ul class="feature-list" style="margin-top:16px">
+      <li><strong>Listar</strong> todos los usuarios con su nombre, usuario, rol, estado y fecha de creación.</li>
+      <li><strong>Crear usuario</strong> — nombre, usuario único, contraseña (mín. 6 caracteres), rol y estado.</li>
+      <li><strong>Editar usuario</strong> — nombre, rol, estado y opcionalmente nueva contraseña. No puede cambiar su propio rol.</li>
+      <li><strong>Eliminar usuario</strong> — con confirmación. No puede eliminar su propia cuenta.</li>
+    </ul>
+
+    <div class="screenshot"><img src="img/13-usuarios.jpg" alt="Tabla de usuarios"/></div>
+  </div>
+
+  <!-- 08 CONTROL DE INVENTARIO -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#0f766e,#14b8a6)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="11" y2="16"/></svg>
+      </div>
+      <div><h2>08 · Control de Inventario</h2><div class="section-sub">Existencias en tiempo real por producto</div></div>
+    </div>
+    <p style="color:var(--text-2);margin-bottom:16px">Vista consolidada de entradas, salidas y existencia actual de cada producto. Calculado a partir del kardex.</p>
+    <ul class="feature-list">
+      <li><strong>Entradas</strong> — suma de compras + ajustes positivos + stock inicial.</li>
+      <li><strong>Salidas</strong> — suma de ventas + ajustes negativos.</li>
+      <li><strong>Existencia</strong> — Entradas − Salidas = stock actual del sistema.</li>
+      <li>Estado visual: <span style="color:var(--red)">Por agotarse</span> o <span style="color:var(--green)">OK</span> según el stock mínimo.</li>
+      <li>Búsqueda por nombre o código en tiempo real.</li>
+    </ul>
+    <div class="screenshot"><img src="img/07-inventario.jpg" alt="Control de inventario"/></div>
+  </div>
+
+  <!-- 09 INVENTARIO FÍSICO -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#b45309,#d97706)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div><h2>09 · Inventario Físico</h2><div class="section-sub">Conteos manuales y ajustes por diferencias</div></div>
+    </div>
+    <ul class="feature-list">
+      <li><strong>Nuevo conteo</strong> — general (todos los productos) o por categoría específica.</li>
+      <li>Formulario de conteo en tabla: sistema muestra el stock del sistema, operador ingresa el conteo físico real.</li>
+      <li>Se calculan las diferencias automáticamente (positivas = sobrante, negativas = faltante).</li>
+      <li>El conteo queda en estado <span style="color:var(--amber)">Borrador</span> hasta ser aprobado.</li>
+      <li><strong>Aprobar conteo</strong> — ajusta el stock del sistema al conteo físico y registra cada diferencia en el kardex como AJUSTE.</li>
+      <li>Los conteos aprobados no se pueden modificar.</li>
+    </ul>
+
+    <div class="flow">
+      <span class="flow-step">Nuevo conteo</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Ingresar cantidades físicas</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Guardar borrador</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Revisar diferencias</span><span class="flow-arrow">→</span>
+      <span class="flow-step">Aprobar → Stock ajustado</span>
+    </div>
+    <div class="screenshot"><img src="img/08-fisico.jpg" alt="Inventario físico"/></div>
+  </div>
+
+  <!-- 10 KARDEX -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#1d4ed8,#2563eb)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </div>
+      <div><h2>10 · Kardex</h2><div class="section-sub">Historial completo de movimientos por producto</div></div>
+    </div>
+    <p style="color:var(--text-2);margin-bottom:16px">Selecciona cualquier producto para ver su historial cronológico completo con saldo acumulado.</p>
+    <ul class="feature-list">
+      <li><strong>Saldo inicial</strong> — stock con el que fue creado el producto.</li>
+      <li><strong>Compra</strong> — entrada por registro de compra.</li>
+      <li><strong>Venta</strong> — salida por registro de venta.</li>
+      <li><strong>Ajuste</strong> — entrada o salida manual o por inventario físico aprobado.</li>
+    </ul>
+    <p style="margin-top:14px;color:var(--text-2)">Cada fila muestra: fecha, tipo de movimiento, referencia/descripción, cantidad entrada, cantidad salida y <strong>saldo acumulado</strong>.</p>
+    <div class="screenshot"><img src="img/09-kardex.jpg" alt="Kardex de movimientos"/></div>
+  </div>
+
+  <!-- 11 CRÉDITOS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#e11d48,#f43f5e)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </div>
+      <div><h2>11 · Créditos / Cartera</h2><div class="section-sub">Gestión de cuentas por cobrar</div></div>
+    </div>
+
+    <div class="screenshot"><img src="img/10-creditos.jpg" alt="Módulo de créditos con cartera pendiente"/></div>
+
+    <ul class="feature-list">
+      <li><strong>KPI de cartera</strong> — total por cobrar en pesos y número de créditos activos.</li>
+      <li>Filtro rápido para ver solo créditos pendientes o todos.</li>
+      <li>Columnas: fecha, cliente, total de la venta, abonado, saldo restante, fecha límite y estado.</li>
+      <li><strong>Registrar abono</strong> — valor y fecha del abono. El estado cambia automáticamente a PARCIAL o PAGADO según el saldo.</li>
+      <li><strong>Historial del cliente</strong> — todas las compras a crédito, abonos y saldo total de ese cliente.</li>
+    </ul>
+
+    <p style="margin:14px 0 8px;font-weight:600">Estados de un crédito</p>
+    <div class="chips">
+      <span class="chip red">Pendiente — sin abonos</span>
+      <span class="chip amber">Parcial — abonado pero no saldado</span>
+      <span class="chip green">Pagado — saldo en cero</span>
+    </div>
+  </div>
+
+  <!-- 12 REPORTES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#0f9d58,#16a34a)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <div><h2>12 · Reportes</h2><div class="section-sub">Análisis e informes de gestión</div></div>
+    </div>
+    <p style="color:var(--text-2);margin-bottom:16px">Cuatro reportes tabulares seleccionables con pestañas.</p>
+    <ul class="feature-list">
+      <li><strong>Inventario actual</strong> — existencia vigente de cada producto con código, categoría y unidad.</li>
+      <li><strong>Productos por agotarse</strong> — lista con stock actual, mínimo y cantidad sugerida a pedir.</li>
+      <li><strong>Reporte de utilidad</strong> — por producto: costo promedio, precio de venta, utilidad por unidad, unidades vendidas y utilidad total. Suma el total generado.</li>
+      <li><strong>Ventas por día</strong> — número de transacciones y total de ventas agrupado por fecha. Suma el acumulado total.</li>
+    </ul>
+    <div class="screenshot"><img src="img/11-reportes.jpg" alt="Módulo de reportes"/></div>
+  </div>
+
+  <!-- 13 KIOSKOS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#4f46e5,#6366f1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div><h2>13 · Kioskos</h2><div class="section-sub">Espacios totalmente independientes</div></div>
+    </div>
+    <p style="color:var(--text-2);margin-bottom:16px">El sistema soporta múltiples kioskos. Cada kiosko tiene su propia base de datos de productos, ventas, inventario y cartera completamente separada.</p>
+    <ul class="feature-list">
+      <li><strong>Cambiar kiosko activo</strong> desde el selector en la barra superior o el botón "Usar" en la tabla.</li>
+      <li><strong>Crear kiosko</strong> — opcionalmente con las categorías sugeridas. Solo disponible para Administradores.</li>
+      <li><strong>Renombrar</strong> un kiosko existente.</li>
+      <li><strong>Eliminar kiosko</strong> — elimina en cascada TODA la información asociada (productos, ventas, kardex, créditos). Requiere doble confirmación.</li>
+    </ul>
+    <div class="screenshot"><img src="img/12-kioskos.jpg" alt="Administración de kioskos"/></div>
+    <div class="info-box">El kiosko activo se muestra en la barra superior y persiste entre sesiones mediante localStorage.</div>
+  </div>
+
+  <!-- 14 ARQUITECTURA TÉCNICA -->
+  <!-- <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(145deg,#374151,#4b5563)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </div>
+      <div><h2>14 · Arquitectura Técnica</h2><div class="section-sub">Stack y decisiones de diseño</div></div>
+    </div>
+
+    <p style="margin-bottom:16px;font-weight:600">Stack tecnológico</p>
+    <table class="role-table">
+      <thead><tr><th>Capa</th><th>Tecnología</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td>Backend</td><td><strong>Node.js + Express</strong></td><td>API REST en puerto 3000</td></tr>
+        <tr><td>Base de datos</td><td><strong>PostgreSQL</strong></td><td>Puerto 8844, contraseña: 123456</td></tr>
+        <tr><td>ORM</td><td><strong>Prisma</strong></td><td>Migraciones, tipado, transacciones</td></tr>
+        <tr><td>Autenticación</td><td><strong>JWT + bcryptjs</strong></td><td>Token en localStorage, 24h de vigencia</td></tr>
+        <tr><td>Frontend</td><td><strong>Vanilla JS SPA</strong></td><td>Sin frameworks, enrutamiento por hash (#/ruta)</td></tr>
+        <tr><td>Iconos</td><td><strong>Lucide Icons</strong></td><td>SVG desde CDN</td></tr>
+        <tr><td>Fuentes</td><td><strong>Inter + Plus Jakarta Sans</strong></td><td>Google Fonts</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin:24px 0 12px;font-weight:600">Consistencia de datos</p>
+    <ul class="feature-list">
+      <li>Todas las operaciones que modifican el stock (compras, ventas, ajustes, inventario físico) se ejecutan en <strong>transacciones Prisma</strong> para garantizar que el stock y el kardex estén siempre sincronizados.</li>
+      <li>El <strong>multi-kiosko</strong> se implementa con <code>kioskId</code> en todas las tablas de datos y validación via middleware <code>requireKiosk</code> que lee el header <code>X-Kiosk-Id</code>.</li>
+      <li>La <strong>autenticación</strong> se aplica globalmente con middleware <code>requireAuth</code>. Las rutas de mutación de kioskos y toda la gestión de usuarios usan adicionalmente <code>requireAdmin</code>.</li>
+    </ul>
+
+    <p style="margin:20px 0 12px;font-weight:600">Comandos útiles</p>
+    <div style="background:var(--bg);border-radius:10px;padding:16px;font-family:monospace;font-size:13px;color:var(--text-2);border:1px solid var(--border)">
+      <div style="margin-bottom:8px"><span style="color:var(--primary)">npm start</span> &nbsp; — Iniciar el servidor en producción</div>
+      <div style="margin-bottom:8px"><span style="color:var(--primary)">npm run dev</span> &nbsp; — Iniciar con nodemon (recarga automática)</div>
+      <div style="margin-bottom:8px"><span style="color:var(--primary)">npm run db:seed</span> &nbsp; — Crear datos iniciales (admin + kioskos de ejemplo)</div>
+      <div><span style="color:var(--primary)">npx prisma studio</span> &nbsp; — Interfaz visual de la base de datos</div>
+    </div>
+  </div> -->
+
+</div>
+
+<div class="doc-footer">
+  Sistema del Kiosco · Caballeriza &nbsp;·&nbsp; v1.0.0 · 2026 &nbsp;·&nbsp; Documentación generada automáticamente
+</div>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+# Despliegue completo (app + PostgreSQL en el mismo servidor)
+# Uso:  docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: kiosco
+      POSTGRES_PASSWORD: cambia_esta_clave
+      POSTGRES_DB: kiosco
+    volumes:
+      - kiosco_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U kiosco']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://kiosco:cambia_esta_clave@db:5432/kiosco?schema=public
+      PORT: 3000
+    ports:
+      - '3000:3000'
+
+volumes:
+  kiosco_data:

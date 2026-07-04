@@ -5,12 +5,15 @@
 // =====================================================
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // "native" para tu PC local; "rhel-openssl-3.0.x" para el entorno de Vercel.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // conexión con pooler (consultas de la app)
+  directUrl = env("DIRECT_URL")     // conexión directa (migraciones)
 }
 
 // ------------------- Kioskos (espacios) -------------------

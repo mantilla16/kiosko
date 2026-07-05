@@ -249,6 +249,9 @@ model SalesRecord {
   createdAt DateTime          @default(now())
 }
 
+// Cada línea es una porción vendida de un producto: de contado (kind=CASH) o a
+// crédito para un cliente concreto (kind=CREDIT). Así un mismo producto puede
+// venderse a crédito a varios clientes en el mismo registro (varias líneas CREDIT).
 model SalesRecordItem {
   id           Int         @id @default(autoincrement())
   recordId     Int
@@ -256,9 +259,9 @@ model SalesRecordItem {
   productId    Int
   product      Product     @relation(fields: [productId], references: [id])
   unitPrice    Float
-  cashQty      Int         @default(0)
-  creditQty    Int         @default(0)
-  customerCc   String? // cliente para la parte a crédito (requerido si creditQty > 0)
+  qty          Int
+  kind         String // 'CASH' | 'CREDIT'
+  customerCc   String? // requerido si kind = CREDIT
   customerName String?
   dueDate      DateTime?
 }

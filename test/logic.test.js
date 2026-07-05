@@ -82,32 +82,50 @@ test('userCreate: exige contraseña de al menos 6 caracteres', () => {
 
 // ---------- Registro de ventas ----------
 
-test('normalizeItems: ignora filas sin cantidades', () => {
+test('normalizeItems: separa contado y una línea por cliente a crédito', () => {
   const r = salesRecord.normalizeItems([
-    { productId: 1, cashQty: 10, creditQty: 0 },
-    { productId: 2, cashQty: 0, creditQty: 0 },
+    { productId: 1, cashQty: 10, credits: [] },
+    { productId: 2, cashQty: 0, credits: [] },
+    { productId: 3, cashQty: 2, credits: [
+      { qty: 3, customerCc: '111', customerName: 'Ana' },
+      { qty: 1, customerCc: '999', customerName: 'Luis' },
+    ] },
   ]);
-  assert.equal(r.length, 1);
+  // 1 línea contado (p1) + 1 contado (p3) + 2 crédito (p3) = 4
+  assert.equal(r.length, 4);
+  assert.equal(r.filter((l) => l.kind === 'CREDIT').length, 2);
 });
 
-test('normalizeItems: exige CC y nombre cuando hay crédito', () => {
-  assert.throws(() => salesRecord.normalizeItems([{ productId: 1, creditQty: 5 }]));
-  assert.throws(() => salesRecord.normalizeItems([{ productId: 1, creditQty: 5, customerCc: '111' }]));
-  const ok = salesRecord.normalizeItems([{ productId: 1, creditQty: 5, customerCc: '111', customerName: 'Ana' }]);
-  assert.equal(ok[0].customerCc, '111');
+test('normalizeItems: un producto a crédito puede tener varios clientes', () => {
+  const r = salesRecord.normalizeItems([
+    { productId: 5, cashQty: 0, credits: [
+      { qty: 4, customerCc: '111', customerName: 'Ana' },
+      { qty: 6, customerCc: '222', customerName: 'Beto' },
+    ] },
+  ]);
+  assert.equal(r.length, 2);
+  assert.deepEqual(r.map((l) => l.customerCc).sort(), ['111', '222']);
+});
+
+test('normalizeItems: exige CC y nombre en cada línea de crédito', () => {
+  assert.throws(() => salesRecord.normalizeItems([{ productId: 1, credits: [{ qty: 5 }] }]));
+  assert.throws(() => salesRecord.normalizeItems([{ productId: 1, credits: [{ qty: 5, customerCc: '111' }] }]));
 });
 
 test('normalizeItems: rechaza registro totalmente vacío', () => {
-  assert.throws(() => salesRecord.normalizeItems([{ productId: 1, cashQty: 0, creditQty: 0 }]));
+  assert.throws(() => salesRecord.normalizeItems([{ productId: 1, cashQty: 0, credits: [] }]));
 });
 
-test('groupCreditsByClient: agrupa un crédito por cliente (CC)', () => {
+test('groupCreditsByClient: un crédito por cliente, agregando por producto', () => {
   const groups = salesRecord.groupCreditsByClient([
-    { productId: 3, creditQty: 3, customerCc: '111', customerName: 'Ana', dueDate: null },
-    { productId: 5, creditQty: 1, customerCc: '111', customerName: 'Ana', dueDate: null },
-    { productId: 7, creditQty: 2, customerCc: '999', customerName: 'Luis', dueDate: null },
+    { productId: 3, qty: 3, unitPrice: 1000, customerCc: '111', customerName: 'Ana', dueDate: null },
+    { productId: 5, qty: 1, unitPrice: 2000, customerCc: '111', customerName: 'Ana', dueDate: null },
+    { productId: 3, qty: 2, unitPrice: 1000, customerCc: '111', customerName: 'Ana', dueDate: null },
+    { productId: 7, qty: 2, unitPrice: 500, customerCc: '999', customerName: 'Luis', dueDate: null },
   ]);
   assert.equal(groups.length, 2);
-  assert.equal(groups.find((g) => g.cc === '111').items.length, 2);
+  const ana = groups.find((g) => g.cc === '111');
+  assert.equal(ana.items.length, 2); // producto 3 y 5 (el 3 se agregó: 3+2=5)
+  assert.equal(ana.items.find((i) => i.productId === 3).qty, 5);
   assert.equal(groups.find((g) => g.cc === '999').items.length, 1);
 });

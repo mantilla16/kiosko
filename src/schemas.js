@@ -102,10 +102,12 @@ const salesRecordCreate = z.object({
   items: z.array(z.object({
     productId: positiveInt,
     cashQty: nonNegInt.optional(),
-    creditQty: nonNegInt.optional(),
-    customerCc: z.string().trim().optional(),
-    customerName: z.string().trim().optional(),
-    dueDate: z.string().optional(),
+    credits: z.array(z.object({
+      qty: nonNegInt.optional(),
+      customerCc: z.string().trim().optional(),
+      customerName: z.string().trim().optional(),
+      dueDate: z.string().optional(),
+    })).optional(),
   })).min(1, 'Debe registrar al menos un producto.'),
 });
 

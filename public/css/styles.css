@@ -260,7 +260,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .badge.gray { background: #eef0f3; color: var(--text-2); }
 .text-green { color: var(--green); font-weight: 600; }
 .text-red { color: var(--red); font-weight: 600; }
+.text-amber { color: var(--amber); font-weight: 600; }
 .text-muted { color: var(--muted); }
+.info-box { background: var(--amber-soft); border: 1px solid var(--amber); color: var(--amber); border-radius: 8px; padding: 10px 14px; font-size: 13px; }
 
 /* ---------- Modal ---------- */
 .modal-overlay {

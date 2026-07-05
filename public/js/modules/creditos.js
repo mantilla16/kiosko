@@ -23,8 +23,9 @@ window.Routes.creditos = {
           <div class="panel-body flush">
             ${U.table(
               [
+                { key: 'num', label: 'N° crédito', render: (r) => r.creditNumber ? `#${r.creditNumber}` : '—' },
                 { key: 'date', label: 'Fecha', render: (r) => U.date(r.date) },
-                { key: 'cliente', label: 'Cliente', render: (r) => U.escapeHtml(r.customer ? r.customer.name : '—') },
+                { key: 'cliente', label: 'Cliente', render: (r) => r.customer ? `${U.escapeHtml(r.customer.name)}${r.customer.cc ? ` <span class="text-muted">(CC ${U.escapeHtml(r.customer.cc)})</span>` : ''}` : '—' },
                 { key: 'total', label: 'Total', num: true, render: (r) => U.money(r.total) },
                 { key: 'paid', label: 'Abonado', num: true, render: (r) => U.money(r.paid) },
                 { key: 'balance', label: 'Saldo', num: true, render: (r) => `<strong class="${r.balance > 0 ? 'text-red' : 'text-green'}">${U.money(r.balance)}</strong>` },

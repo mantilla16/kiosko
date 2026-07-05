@@ -3,6 +3,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 const { computeStatus } = require('../src/services/sale.service');
+const salesRecord = require('../src/services/salesRecord.service');
 const schemas = require('../src/schemas');
 
 // ---------- computeStatus (estado de un crédito según total y abonado) ----------
@@ -77,4 +78,36 @@ test('login: exige usuario y contraseña', () => {
 test('userCreate: exige contraseña de al menos 6 caracteres', () => {
   assert.ok(!schemas.userCreate.safeParse({ username: 'juan', name: 'Juan', password: '123' }).success);
   assert.ok(schemas.userCreate.safeParse({ username: 'juan', name: 'Juan', password: '123456' }).success);
+});
+
+// ---------- Registro de ventas ----------
+
+test('normalizeItems: ignora filas sin cantidades', () => {
+  const r = salesRecord.normalizeItems([
+    { productId: 1, cashQty: 10, creditQty: 0 },
+    { productId: 2, cashQty: 0, creditQty: 0 },
+  ]);
+  assert.equal(r.length, 1);
+});
+
+test('normalizeItems: exige CC y nombre cuando hay crédito', () => {
+  assert.throws(() => salesRecord.normalizeItems([{ productId: 1, creditQty: 5 }]));
+  assert.throws(() => salesRecord.normalizeItems([{ productId: 1, creditQty: 5, customerCc: '111' }]));
+  const ok = salesRecord.normalizeItems([{ productId: 1, creditQty: 5, customerCc: '111', customerName: 'Ana' }]);
+  assert.equal(ok[0].customerCc, '111');
+});
+
+test('normalizeItems: rechaza registro totalmente vacío', () => {
+  assert.throws(() => salesRecord.normalizeItems([{ productId: 1, cashQty: 0, creditQty: 0 }]));
+});
+
+test('groupCreditsByClient: agrupa un crédito por cliente (CC)', () => {
+  const groups = salesRecord.groupCreditsByClient([
+    { productId: 3, creditQty: 3, customerCc: '111', customerName: 'Ana', dueDate: null },
+    { productId: 5, creditQty: 1, customerCc: '111', customerName: 'Ana', dueDate: null },
+    { productId: 7, creditQty: 2, customerCc: '999', customerName: 'Luis', dueDate: null },
+  ]);
+  assert.equal(groups.length, 2);
+  assert.equal(groups.find((g) => g.cc === '111').items.length, 2);
+  assert.equal(groups.find((g) => g.cc === '999').items.length, 1);
 });

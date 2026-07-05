@@ -94,8 +94,10 @@ async function salesByDay(kioskId, { from, to } = {}) {
   const map = new Map();
   for (const s of sales) {
     const key = new Date(s.date).toISOString().slice(0, 10);
-    const entry = map.get(key) || { date: key, total: 0, count: 0 };
+    const entry = map.get(key) || { date: key, total: 0, cash: 0, credit: 0, count: 0 };
     entry.total += s.total;
+    if (s.type === 'CREDIT') entry.credit += s.total;
+    else entry.cash += s.total;
     entry.count += 1;
     map.set(key, entry);
   }
@@ -121,6 +123,8 @@ async function dashboard(kioskId) {
     activeProducts: products.filter((p) => p.active).length,
     lowStockCount: lowStockList.length,
     todaySalesTotal: todaySales.reduce((a, s) => a + s.total, 0),
+    todaySalesCash: todaySales.filter((s) => s.type !== 'CREDIT').reduce((a, s) => a + s.total, 0),
+    todaySalesCredit: todaySales.filter((s) => s.type === 'CREDIT').reduce((a, s) => a + s.total, 0),
     todaySalesCount: todaySales.length,
     receivable,
     customers,

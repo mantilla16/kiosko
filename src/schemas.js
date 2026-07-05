@@ -95,6 +95,20 @@ const payment = z.object({
   date: z.string().optional(),
 });
 
+// ----- Registro de ventas -----
+const salesRecordCreate = z.object({
+  date: z.string().optional(),
+  note: z.string().trim().nullish(),
+  items: z.array(z.object({
+    productId: positiveInt,
+    cashQty: nonNegInt.optional(),
+    creditQty: nonNegInt.optional(),
+    customerCc: z.string().trim().optional(),
+    customerName: z.string().trim().optional(),
+    dueDate: z.string().optional(),
+  })).min(1, 'Debe registrar al menos un producto.'),
+});
+
 // ----- Kioskos -----
 const kioskCreate = z.object({
   name: trimmed(1, 'El nombre del kiosko es obligatorio.'),
@@ -111,5 +125,6 @@ module.exports = {
   userCreate, userUpdate,
   productCreate, productUpdate, stockAdjustment,
   saleCreate, purchaseCreate, payment,
+  salesRecordCreate,
   kioskCreate, kioskUpdate,
 };

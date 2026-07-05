@@ -31,6 +31,7 @@ model Kiosk {
   customers           Customer[]
   movements           StockMovement[]
   physicalInventories PhysicalInventory[]
+  salesRecords        SalesRecord[]
 }
 
 // ------------------- Catálogo -------------------
@@ -77,10 +78,11 @@ model Product {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  purchases     Purchase[]
-  saleItems     SaleItem[]
-  movements     StockMovement[]
-  physicalItems PhysicalInventoryItem[]
+  purchases        Purchase[]
+  saleItems        SaleItem[]
+  movements        StockMovement[]
+  physicalItems    PhysicalInventoryItem[]
+  salesRecordItems SalesRecordItem[]
 
   @@unique([kioskId, code])
 }
@@ -118,29 +120,31 @@ model Customer {
   id        Int      @id @default(autoincrement())
   kioskId   Int
   kiosk     Kiosk    @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  cc        String?  // Cédula del cliente: identificador único por kiosko
   name      String
   phone     String?
   notes     String?
   sales     Sale[]
   createdAt DateTime @default(now())
 
-  @@unique([kioskId, name])
+  @@unique([kioskId, cc])
 }
 
 model Sale {
-  id         Int         @id @default(autoincrement())
-  kioskId    Int
-  kiosk      Kiosk       @relation(fields: [kioskId], references: [id], onDelete: Cascade)
-  date       DateTime    @default(now())
-  type       SaleType    @default(CASH)
-  total      Float
-  customerId Int?
-  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  dueDate    DateTime?
-  status     SaleStatus?
-  items      SaleItem[]
-  payments   Payment[]
-  createdAt  DateTime    @default(now())
+  id           Int         @id @default(autoincrement())
+  kioskId      Int
+  kiosk        Kiosk       @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  date         DateTime    @default(now())
+  type         SaleType    @default(CASH)
+  total        Float
+  creditNumber Int? // Número de crédito secuencial por kiosko (solo ventas a crédito)
+  customerId   Int?
+  customer     Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  dueDate      DateTime?
+  status       SaleStatus?
+  items        SaleItem[]
+  payments     Payment[]
+  createdAt    DateTime    @default(now())
 }
 
 model SaleItem {
@@ -226,4 +230,35 @@ model PhysicalInventoryItem {
   physicalQty Int
   difference  Int
   observation String?
+}
+
+// ------------------- Registro de ventas (control contable) -------------------
+// Un registro agrupa las ventas de un período. Por producto se anota la cantidad
+// vendida de contado y a crédito. Al APROBAR se generan las ventas reales
+// (una venta CASH agregada y una venta CREDIT por cada cliente), se descuenta
+// el stock y se registra en el kardex.
+
+model SalesRecord {
+  id        Int               @id @default(autoincrement())
+  kioskId   Int
+  kiosk     Kiosk             @relation(fields: [kioskId], references: [id], onDelete: Cascade)
+  date      DateTime          @default(now())
+  note      String?
+  status    String            @default("DRAFT") // DRAFT | APPROVED
+  items     SalesRecordItem[]
+  createdAt DateTime          @default(now())
+}
+
+model SalesRecordItem {
+  id           Int         @id @default(autoincrement())
+  recordId     Int
+  record       SalesRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  productId    Int
+  product      Product     @relation(fields: [productId], references: [id])
+  unitPrice    Float
+  cashQty      Int         @default(0)
+  creditQty    Int         @default(0)
+  customerCc   String? // cliente para la parte a crédito (requerido si creditQty > 0)
+  customerName String?
+  dueDate      DateTime?
 }

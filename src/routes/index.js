@@ -20,6 +20,7 @@ router.use('/products',          requireKiosk, require('./products.routes'));
 router.use('/categories',        requireKiosk, require('./categories.routes'));
 router.use('/purchases',         requireKiosk, require('./purchases.routes'));
 router.use('/sales',             requireKiosk, require('./sales.routes'));
+router.use('/sales-records',     requireKiosk, require('./salesRecords.routes'));
 router.use('/credits',           requireKiosk, require('./credits.routes'));
 router.use('/physical-inventory',requireKiosk, require('./physical.routes'));
 router.use('/reports',           requireKiosk, require('./reports.routes'));

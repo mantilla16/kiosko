@@ -7,7 +7,7 @@ window.Routes.dashboard = {
     const d = await API.get('/reports/dashboard');
 
     const kpis = [
-      { icon: 'banknote',       label: 'Ventas de hoy',            value: U.money(d.todaySalesTotal),    sub: `${d.todaySalesCount} venta(s)`,     accent: 'green' },
+      { icon: 'banknote',       label: 'Ventas de hoy',            value: U.money(d.todaySalesTotal),    sub: `Contado ${U.money(d.todaySalesCash || 0)} · Crédito ${U.money(d.todaySalesCredit || 0)}`, accent: 'green' },
       { icon: 'wallet',         label: 'Por cobrar (cartera)',      value: U.money(d.receivable),         sub: `${d.customers} cliente(s)`,         accent: 'red' },
       { icon: 'alert-triangle', label: 'Productos por agotarse',    value: d.lowStockCount,               sub: 'en o bajo el mínimo',               accent: 'amber' },
       { icon: 'package',        label: 'Productos activos',         value: d.activeProducts,              sub: `${d.totalProducts} en total`,       accent: 'blue' },

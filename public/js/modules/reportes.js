@@ -95,15 +95,17 @@ window.Routes.reportes = {
       else if (current === 'ventas') {
         const rows = await API.get('/reports/sales-by-day', { from: filtros.from, to: filtros.to });
         const total = rows.reduce((a, r) => a + r.total, 0);
+        const totalCash = rows.reduce((a, r) => a + (r.cash || 0), 0);
+        const totalCredit = rows.reduce((a, r) => a + (r.credit || 0), 0);
         exportData = {
           title: 'Ventas por día',
-          headers: ['Fecha', 'N° ventas', 'Total ventas'],
-          rows: rows.map((r) => [U.date(r.date), r.count, r.total]),
+          headers: ['Fecha', 'N° ventas', 'Contado', 'Crédito', 'Total'],
+          rows: rows.map((r) => [U.date(r.date), r.count, r.cash || 0, r.credit || 0, r.total]),
         };
         box.innerHTML = `
           <div class="panel">
             <div class="panel-head">
-              <h2>Ventas por día · Total acumulado: ${U.money(total)}</h2>
+              <h2>Ventas por día · Contado ${U.money(totalCash)} · Crédito ${U.money(totalCredit)} · Total ${U.money(total)}</h2>
               <div class="row-flex" style="gap:8px;align-items:center">
                 <label class="hint" style="margin:0">Desde</label>
                 <input type="date" id="fFrom" value="${filtros.from}" />
@@ -116,7 +118,9 @@ window.Routes.reportes = {
               [
                 { key: 'date', label: 'Fecha', render: (r) => U.date(r.date) },
                 { key: 'count', label: 'N° ventas', num: true },
-                { key: 'total', label: 'Total ventas', num: true, render: (r) => `<strong>${U.money(r.total)}</strong>` },
+                { key: 'cash', label: 'Contado', num: true, render: (r) => `<span class="text-green">${U.money(r.cash || 0)}</span>` },
+                { key: 'credit', label: 'Crédito', num: true, render: (r) => `<span class="text-amber">${U.money(r.credit || 0)}</span>` },
+                { key: 'total', label: 'Total', num: true, render: (r) => `<strong>${U.money(r.total)}</strong>` },
               ], rows, { empty: 'No hay ventas en el rango seleccionado.' })}</div>
           </div>`;
 

@@ -1,0 +1,24 @@
+# Plantilla del archivo .env (SIN los secretos reales, por seguridad).
+# En el PC nuevo, crea un archivo ".env" en la raíz del proyecto con estas variables.
+# Los valores reales de producción están guardados en Vercel (Settings > Environment
+# Variables) y en el panel de Neon; desde ahí puedes copiarlos.
+
+# --- Base de datos LOCAL (PostgreSQL en tu PC) ---
+# Ajusta usuario/clave/puerto según tu PostgreSQL local.
+DATABASE_URL="postgresql://postgres:TU_CLAVE_LOCAL@localhost:8844/kiosco?schema=public"
+DIRECT_URL="postgresql://postgres:TU_CLAVE_LOCAL@localhost:8844/kiosco?schema=public"
+
+# --- Base de datos PRODUCCIÓN (Neon) ---
+# Copia estas dos desde Vercel o Neon. La DATABASE_URL es la del pooler
+# (host con "-pooler") + &pgbouncer=true; la DIRECT_URL es la directa (sin -pooler).
+#   DATABASE_URL="postgresql://neondb_owner:CLAVE@ep-floral-tree-aisd393w-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require&pgbouncer=true"
+#   DIRECT_URL="postgresql://neondb_owner:CLAVE@ep-floral-tree-aisd393w.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require"
+
+PORT=3000
+
+# Secreto para firmar los tokens (JWT). Cópialo de Vercel, o genera uno nuevo con:
+#   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+JWT_SECRET=PON_AQUI_TU_SECRETO
+
+JWT_EXPIRES_IN=24h
+CORS_ORIGIN=

@@ -33,7 +33,7 @@ window.Routes.kioskos = {
           </div>
         </div>`;
 
-      document.getElementById('btnNew').onclick = openForm;
+      document.getElementById('btnNew').onclick = () => openForm();
       view.querySelectorAll('[data-use]').forEach((b) => (b.onclick = async () => {
         API.setKiosk(b.dataset.use); await window.refreshKiosks(); U.toast('Kiosko activo cambiado.', 'success'); load();
       }));

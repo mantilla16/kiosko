@@ -111,6 +111,21 @@ const salesRecordCreate = z.object({
   })).min(1, 'Debe registrar al menos un producto.'),
 });
 
+// ----- Inventario físico -----
+// Dos modos: por categoría (prefill de todos sus productos) o con items explícitos.
+const physicalInventoryCreate = z.object({
+  note: z.string().trim().nullish(),
+  categoryId: optionalId,
+  items: z.array(z.object({
+    productId: positiveInt,
+    physicalQty: nonNegInt,
+    observation: z.string().trim().nullish(),
+  })).optional(),
+}).refine(
+  (d) => (Array.isArray(d.items) && d.items.length > 0) || d.categoryId != null,
+  { message: 'Debe registrar al menos un producto o seleccionar una categoría.' }
+);
+
 // ----- Kioskos -----
 const kioskCreate = z.object({
   name: trimmed(1, 'El nombre del kiosko es obligatorio.'),
@@ -128,5 +143,6 @@ module.exports = {
   productCreate, productUpdate, stockAdjustment,
   saleCreate, purchaseCreate, payment,
   salesRecordCreate,
+  physicalInventoryCreate,
   kioskCreate, kioskUpdate,
 };

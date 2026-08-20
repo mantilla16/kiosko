@@ -37,6 +37,7 @@ window.Routes.reportes = {
       const box = document.getElementById('report');
       box.innerHTML = '<div class="loader">Cargando…</div>';
 
+      try {
       if (current === 'inventario') {
         const rows = await API.get('/reports/inventory');
         exportData = {
@@ -132,6 +133,10 @@ window.Routes.reportes = {
       }
 
       U.initIcons(view);
+      } catch (e) {
+        box.innerHTML = `<div class="panel"><div class="panel-body" style="padding:20px">
+          <p class="text-red">No se pudo cargar el reporte: ${U.escapeHtml(e.message)}</p></div></div>`;
+      }
     }
 
     const panel = (title, body) => `<div class="panel"><div class="panel-head"><h2>${title}</h2></div><div class="panel-body flush">${body}</div></div>`;

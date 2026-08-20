@@ -137,8 +137,11 @@ router.delete('/:id', ah(async (req, res) => {
   const product = await prisma.product.findFirst({ where: { id, kioskId: req.kioskId } });
   if (!product) throw new ApiError(404, 'Producto no encontrado.');
 
-  const movements = await prisma.stockMovement.count({ where: { productId: id } });
-  if (movements > 0 && !force) {
+  const [movements, salesRecordItems] = await Promise.all([
+    prisma.stockMovement.count({ where: { productId: id } }),
+    prisma.salesRecordItem.count({ where: { productId: id } }),
+  ]);
+  if ((movements > 0 || salesRecordItems > 0) && !force) {
     // 409: el frontend ofrecerá el borrado forzado
     throw new ApiError(409, 'El producto tiene movimientos asociados.');
   }
@@ -149,6 +152,7 @@ router.delete('/:id', ah(async (req, res) => {
     await tx.saleItem.deleteMany({ where: { productId: id } });
     await tx.purchase.deleteMany({ where: { productId: id } });
     await tx.physicalInventoryItem.deleteMany({ where: { productId: id } });
+    await tx.salesRecordItem.deleteMany({ where: { productId: id } });
     await tx.product.delete({ where: { id } });
   });
   res.json({ ok: true });

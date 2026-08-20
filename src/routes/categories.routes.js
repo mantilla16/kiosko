@@ -24,6 +24,7 @@ router.post('/', ah(async (req, res) => {
 
 router.put('/:id', ah(async (req, res) => {
   const { name } = req.body;
+  if (!name || !name.trim()) throw new ApiError(400, 'El nombre de la categoría es obligatorio.');
   const cat = await prisma.category.findFirst({ where: { id: Number(req.params.id), kioskId: req.kioskId } });
   if (!cat) throw new ApiError(404, 'Categoría no encontrada.');
   const updated = await prisma.category.update({ where: { id: cat.id }, data: { name: name.trim() } });

@@ -13,7 +13,12 @@ function required(name) {
 }
 
 const JWT_SECRET = required('JWT_SECRET');
-if (JWT_SECRET === 'kiosco_caballeriza_jwt_2026_secret') {
+const PLACEHOLDER_SECRETS = [
+  'kiosco_caballeriza_jwt_2026_secret',
+  'pon_aqui_un_secreto_largo_y_aleatorio',
+  'PON_AQUI_TU_SECRETO',
+];
+if (PLACEHOLDER_SECRETS.includes(JWT_SECRET)) {
   console.error('\n[ERROR DE SEGURIDAD] El JWT_SECRET es el valor de ejemplo.');
   console.error('Genera uno propio con:  node -e "console.log(require(\'crypto\').randomBytes(48).toString(\'hex\'))"');
   console.error('y ponlo en tu archivo .env.\n');

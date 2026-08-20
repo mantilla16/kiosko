@@ -7,7 +7,9 @@ const U = (() => {
 
   const date = (d) => {
     if (!d) return '';
-    return new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    // Las fechas se guardan como medianoche UTC; se renderizan en UTC para evitar
+    // que la zona horaria local (Colombia, UTC-5) las corra un día hacia atrás.
+    return new Date(d).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
   };
   const today = () => {
     const d = new Date();

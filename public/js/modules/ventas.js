@@ -81,6 +81,7 @@ window.Routes.ventas = {
           <td>${U.escapeHtml(p.name)} <span class="text-muted">(${p.stock} disp.)</span></td>
           <td class="num">${U.money(p.price)}</td>
           <td><input class="input-sm cashq" type="number" min="0" value="${cash}" style="width:70px" /></td>
+          <td><input class="input-sm recount" type="number" min="0" placeholder="—" style="width:80px" title="Unidades contadas al final. El contado se calcula: existencia − segundo conteo." /></td>
           <td>
             <div class="credits-wrap">${creds.map((c) => creditLineHtml(c.qty, c.customerCc || '', c.customerName || '')).join('')}</div>
             <button type="button" class="btn sm ghost add-credit">+ cliente a crédito</button>
@@ -97,9 +98,9 @@ window.Routes.ventas = {
             <div class="field"><label>Observación</label><input id="r_note" value="${isEdit ? U.escapeHtml(record.note || '') : ''}" placeholder="Ej: Ventas del 4 de julio" /></div>
           </div>
           <p class="section-title">Ventas por producto</p>
-          <p class="text-muted" style="margin-bottom:8px">Escribe las unidades vendidas de <strong>contado</strong>. Para crédito, agrega uno o varios clientes con "+ cliente a crédito" (cantidad + CC + nombre).</p>
+          <p class="text-muted" style="margin-bottom:8px">Registra el <strong>contado</strong> de dos formas (a tu elección): escribe las unidades directamente en <strong>Contado</strong>, o escribe en <strong>Segundo conteo</strong> las unidades que quedaron al recontar y el sistema calcula el contado como <em>existencia − segundo conteo</em> (restando también lo vendido a crédito de ese producto). Para crédito, agrega uno o varios clientes con "+ cliente a crédito" (cantidad + CC + nombre).</p>
           <div class="table-wrap"><table class="line-items"><thead><tr>
-            <th>Producto</th><th class="num">Precio</th><th class="num">Contado</th><th>Crédito (por cliente)</th>
+            <th>Producto</th><th class="num">Precio</th><th class="num">Contado</th><th class="num">Segundo conteo</th><th>Crédito (por cliente)</th>
           </tr></thead><tbody>${rows}</tbody></table></div>
           <div class="row-flex" style="justify-content:flex-end;gap:16px;margin-top:10px">
             <span>Contado: <strong id="sumCash" class="text-green">$ 0</strong></span>
@@ -111,6 +112,34 @@ window.Routes.ventas = {
       });
 
       const priceOf = {}; products.forEach((p) => { priceOf[p.id] = p.price; });
+      const stockOf = {}; products.forEach((p) => { stockOf[p.id] = p.stock; });
+
+      // Suma las cantidades a crédito registradas para un producto (por fila).
+      const creditQtyOf = (tr) => {
+        let sum = 0;
+        tr.querySelectorAll('.credit-line .cq').forEach((q) => { sum += Number(q.value) || 0; });
+        return sum;
+      };
+
+      // Si la fila tiene "segundo conteo", deriva el contado = existencia − segundo conteo − crédito
+      // y bloquea el campo Contado (queda de solo lectura). Si está vacío, Contado es editable normal.
+      const applyRecount = (tr) => {
+        const recEl  = tr.querySelector('.recount');
+        const cashEl = tr.querySelector('.cashq');
+        if (recEl.value.trim() === '') {
+          cashEl.readOnly = false;
+          cashEl.style.background = '';
+          cashEl.title = '';
+          return;
+        }
+        const stock   = stockOf[Number(tr.dataset.pid)] || 0;
+        const recount = Number(recEl.value) || 0;
+        const sold    = stock - recount - creditQtyOf(tr);
+        cashEl.value = sold > 0 ? sold : 0;
+        cashEl.readOnly = true;
+        cashEl.style.background = '#f1f5f9';
+        cashEl.title = `Calculado: ${stock} (existencia) − ${recount} (segundo conteo)${creditQtyOf(tr) ? ` − ${creditQtyOf(tr)} (crédito)` : ''}`;
+      };
 
       const recalcTotals = () => {
         let cash = 0, credit = 0;
@@ -124,8 +153,9 @@ window.Routes.ventas = {
       };
 
       const wireCreditLine = (line) => {
-        line.querySelector('.cq').oninput = recalcTotals;
-        line.querySelector('.rm').onclick = () => { line.remove(); recalcTotals(); };
+        const tr = line.closest('tr');
+        line.querySelector('.cq').oninput = () => { applyRecount(tr); recalcTotals(); };
+        line.querySelector('.rm').onclick = () => { line.remove(); applyRecount(tr); recalcTotals(); };
         line.querySelector('.cc').onblur = () => {
           const cc = line.querySelector('.cc').value.trim();
           const nameEl = line.querySelector('.cname');
@@ -135,6 +165,7 @@ window.Routes.ventas = {
 
       box.querySelectorAll('tr[data-pid]').forEach((tr) => {
         tr.querySelector('.cashq').oninput = recalcTotals;
+        tr.querySelector('.recount').oninput = () => { applyRecount(tr); recalcTotals(); };
         tr.querySelectorAll('.credit-line').forEach(wireCreditLine);
         tr.querySelector('.add-credit').onclick = () => {
           const wrap = tr.querySelector('.credits-wrap');
@@ -142,7 +173,10 @@ window.Routes.ventas = {
           const line = wrap.lastElementChild;
           U.initIcons(line);
           wireCreditLine(line);
+          applyRecount(tr);
+          recalcTotals();
         };
+        applyRecount(tr);
       });
       recalcTotals();
 

@@ -38,7 +38,7 @@ window.Routes.ventas = {
                 { key: 'creditTotal', label: 'Crédito', num: true, render: (r) => `<span class="text-amber">${U.money(r.creditTotal)}</span>` },
                 { key: 'total', label: 'Total', num: true, render: (r) => `<strong>${U.money(r.total)}</strong>` },
                 { key: 'status', label: 'Estado', render: (r) => r.status === 'APPROVED' ? '<span class="badge green">Registrado</span>' : '<span class="badge amber">Borrador</span>' },
-                { key: 'acc', label: '', render: (r) => `<button class="btn sm" data-view="${r.id}">Ver</button>${r.status !== 'APPROVED' ? ` <button class="btn sm danger" data-del="${r.id}">Borrar</button>` : ''}` },
+                { key: 'acc', label: '', render: (r) => `<button class="btn sm" data-view="${r.id}">Ver</button> <button class="btn sm danger" data-del="${r.id}">Borrar</button>` },
               ],
               list,
               { empty: 'Aún no hay registros de ventas. Crea el primero con "Nuevo registro".' }
@@ -47,14 +47,19 @@ window.Routes.ventas = {
         </div>`;
       document.getElementById('btnNew').onclick = () => openForm();
       view.querySelectorAll('[data-view]').forEach((b) => (b.onclick = () => viewDetail(b.dataset.view)));
-      view.querySelectorAll('[data-del]').forEach((b) => (b.onclick = () => removeRecord(b.dataset.del)));
+      view.querySelectorAll('[data-del]').forEach((b) => (b.onclick = () => removeRecord(list.find((x) => x.id == b.dataset.del))));
       U.initIcons(view);
     }
 
-    // Borrar un registro (solo borradores: uno ya registrado movió stock y creó créditos).
-    async function removeRecord(id) {
-      if (!(await U.confirm('¿Eliminar este registro de ventas (borrador)? Esta acción no se puede deshacer.', { danger: true, okText: 'Eliminar' }))) return;
-      try { await API.del('/sales-records/' + id); U.toast('Registro eliminado.', 'success'); load(); }
+    // Borrar un registro. Si ya está registrado, la reversión devuelve el stock y
+    // elimina las ventas y créditos que generó (el backend lo hace en una transacción).
+    async function removeRecord(record) {
+      const approved = record.status === 'APPROVED';
+      const msg = approved
+        ? 'Este registro ya está REGISTRADO. Al borrarlo se DEVOLVERÁ el stock vendido y se eliminarán las ventas y créditos que generó. Esta acción no se puede deshacer. ¿Continuar?'
+        : '¿Eliminar este registro de ventas (borrador)? Esta acción no se puede deshacer.';
+      if (!(await U.confirm(msg, { danger: true, okText: 'Borrar' }))) return;
+      try { await API.del('/sales-records/' + record.id); U.toast('Registro eliminado.', 'success'); load(); }
       catch (e) { U.toast(e.message, 'error'); }
     }
 

@@ -1,6 +1,12 @@
 const prisma = require('../prisma');
 const ApiError = require('../utils/ApiError');
 
+// Formato de las referencias de kardex que deja `approve`. Centralizado para que
+// `remove` (reversión de un registro aprobado) pueda localizar con precisión los
+// movimientos y las ventas que generó ese registro.
+const cashRef   = (recordId, saleId)       => `Contado · registro #${recordId} · venta #${saleId}`;
+const creditRef = (creditNumber, recordId) => `Crédito #${creditNumber} · registro #${recordId}`;
+
 // Convierte el payload del formulario en líneas planas.
 // items: [{ productId, cashQty, credits: [{ qty, customerCc, customerName, dueDate? }] }]
 // Cada producto puede tener una porción de contado y varias porciones a crédito
@@ -173,7 +179,7 @@ async function approve(kioskId, id) {
           items: { create: cashItems.map((i) => ({ productId: i.productId, quantity: i.qty, unitPrice: i.unitPrice, total: i.qty * i.unitPrice })) },
         },
       });
-      for (const i of cashItems) await sell(i.productId, i.qty, `Contado · registro #${record.id} · venta #${sale.id}`);
+      for (const i of cashItems) await sell(i.productId, i.qty, cashRef(record.id, sale.id));
     }
 
     // 2) Ventas a CRÉDITO: una por cliente, con número secuencial
@@ -194,7 +200,7 @@ async function approve(kioskId, id) {
             items: { create: g.items.map((i) => ({ productId: i.productId, quantity: i.qty, unitPrice: i.unitPrice, total: i.qty * i.unitPrice })) },
           },
         });
-        for (const i of g.items) await sell(i.productId, i.qty, `Crédito #${nextCredit} · registro #${record.id}`);
+        for (const i of g.items) await sell(i.productId, i.qty, creditRef(nextCredit, record.id));
         nextCredit++;
       }
     }
@@ -204,13 +210,62 @@ async function approve(kioskId, id) {
   });
 }
 
+// Borra un registro. Si es borrador, solo elimina el registro (aún no movió nada).
+// Si está aprobado, REVIERTE lo que generó: devuelve el stock, elimina las ventas
+// (contado y crédito, con sus ítems y abonos en cascada) y sus movimientos de kardex.
 async function remove(kioskId, id) {
   id = Number(id);
-  const r = await prisma.salesRecord.findFirst({ where: { id, kioskId } });
-  if (!r) throw new ApiError(404, 'Registro de ventas no encontrado.');
-  if (r.status === 'APPROVED') throw new ApiError(400, 'Un registro aprobado no se puede eliminar.');
-  await prisma.salesRecord.delete({ where: { id } });
-  return { ok: true };
+  return prisma.$transaction(async (tx) => {
+    const r = await tx.salesRecord.findFirst({ where: { id, kioskId }, include: { items: true } });
+    if (!r) throw new ApiError(404, 'Registro de ventas no encontrado.');
+
+    if (r.status === 'APPROVED') {
+      // 1) Localizar los movimientos de kardex que dejó este registro.
+      //    La referencia contiene "registro #<id>"; el lookahead evita que #1 case con #10.
+      const saleMovs = await tx.stockMovement.findMany({ where: { kioskId, type: 'SALE' } });
+      const rx = new RegExp('registro #' + id + '(?!\\d)');
+      const mine = saleMovs.filter((m) => m.reference && rx.test(m.reference));
+
+      // 2) De esas referencias, extraer las ventas de contado (venta #<id>) y los
+      //    números de crédito (Crédito #<n>) generados por el registro.
+      const cashSaleIds = new Set();
+      const creditNumbers = new Set();
+      for (const m of mine) {
+        const c = m.reference.match(/venta #(\d+)/);
+        if (c) cashSaleIds.add(Number(c[1]));
+        const cr = m.reference.match(/Crédito #(\d+)/);
+        if (cr) creditNumbers.add(Number(cr[1]));
+      }
+
+      // 3) Ventas a crédito de este registro. Si alguna ya tiene abonos, no se borra
+      //    (protege el dinero recibido); el usuario debe anular esos abonos primero.
+      const creditSales = creditNumbers.size
+        ? await tx.sale.findMany({
+            where: { kioskId, type: 'CREDIT', creditNumber: { in: [...creditNumbers] } },
+            include: { payments: true, customer: true },
+          })
+        : [];
+      const conAbonos = creditSales.filter((s) => s.payments.length > 0);
+      if (conAbonos.length) {
+        const detalle = conAbonos.map((s) => `${s.customer ? s.customer.name : 'cliente'} (crédito #${s.creditNumber})`).join(', ');
+        throw new ApiError(400, `No se puede borrar: hay créditos con abonos registrados (${detalle}). Anula esos abonos antes de borrar el registro.`);
+      }
+
+      // 4) Devolver el stock: cada línea del registro descontó su cantidad al aprobar.
+      for (const it of r.items) {
+        await tx.product.updateMany({ where: { id: it.productId, kioskId }, data: { stock: { increment: it.qty } } });
+      }
+
+      // 5) Eliminar las ventas generadas (cascade borra SaleItem y Payment) y los movimientos.
+      if (cashSaleIds.size) await tx.sale.deleteMany({ where: { id: { in: [...cashSaleIds] }, kioskId } });
+      if (creditSales.length) await tx.sale.deleteMany({ where: { id: { in: creditSales.map((s) => s.id) }, kioskId } });
+      if (mine.length) await tx.stockMovement.deleteMany({ where: { id: { in: mine.map((m) => m.id) } } });
+    }
+
+    // 6) Borrar el registro (cascade elimina sus SalesRecordItem).
+    await tx.salesRecord.delete({ where: { id } });
+    return { ok: true };
+  });
 }
 
 module.exports = { create, list, get, update, approve, remove, normalizeItems, groupCreditsByClient };

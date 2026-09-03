@@ -169,7 +169,7 @@ async function customerHistory(kioskId, customerId) {
     return { ...s, paid, balance: s.total - paid };
   });
 
-  return { customer: { id: customer.id, name: customer.name, phone: customer.phone }, sales, totalDebt, lastPaymentDate };
+  return { customer: { id: customer.id, name: customer.name, phone: customer.phone, cc: customer.cc }, sales, totalDebt, lastPaymentDate };
 }
 
 module.exports = { create, list, listCredits, addPayment, listCustomers, customerHistory, computeStatus };

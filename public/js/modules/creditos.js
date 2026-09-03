@@ -51,7 +51,7 @@ window.Routes.creditos = {
             <td class="num">${U.money(g.total)}</td>
             <td class="num">${U.money(g.paid)}</td>
             <td class="num"><strong class="${g.balance > 0 ? 'text-red' : 'text-green'}">${U.money(g.balance)}</strong></td>
-            <td>${g.customer ? `<button class="btn sm" data-hist="${g.customer.id}">Historial</button>` : ''}</td>
+            <td>${g.customer ? `<button class="btn sm" data-hist="${g.customer.id}">Ver factura</button>` : ''}</td>
           </tr>
           <tr class="detail-row" data-detail="${cid}" hidden>
             <td colspan="6" style="padding:0;background:#f8fafc">
@@ -113,32 +113,94 @@ window.Routes.creditos = {
       };
     }
 
+    // Badge de estado con estilos en línea (sirve también dentro de la ventana de impresión).
+    function estadoBadge(st) {
+      const m = { PAID: ['#e6f7ec', '#1a7f37', 'Pagado'], PARTIAL: ['#fdf3e2', '#b26a00', 'Parcial'], PENDING: ['#fdecec', '#c0392b', 'Pendiente'] };
+      const [bg, fg, label] = m[st] || ['#eee', '#555', st || '—'];
+      return `<span class="fx-badge" style="background:${bg};color:${fg};border:1px solid ${fg}55">${label}</span>`;
+    }
+
+    // Construye la factura / estado de cuenta de un cliente (mismo HTML para el modal y la impresión).
+    function invoiceHtml(h, kioskName) {
+      const c = h.customer || {};
+      const credits = h.sales || [];
+      const style = `<style>
+        .factura{max-width:720px;margin:0 auto;color:#1a1d24;font-size:13px}
+        .factura .fx-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:12px}
+        .factura .fx-biz{font-size:20px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+        .factura .fx-muted{color:#666;font-size:12px}
+        .factura .fx-right{text-align:right}
+        .factura .fx-client{display:flex;gap:24px;flex-wrap:wrap;background:#f6f7f9;padding:10px 12px;border-radius:8px;margin-bottom:14px}
+        .factura .fx-credit{border:1px solid #e3e6ea;border-radius:8px;padding:10px 12px;margin-bottom:12px}
+        .factura .fx-credit-head{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin-bottom:6px}
+        .factura table.fx-items{width:100%;border-collapse:collapse;font-size:12px}
+        .factura table.fx-items th{background:#f2f3f5;text-align:left;padding:5px 8px;border-bottom:1px solid #ddd}
+        .factura table.fx-items td{padding:5px 8px;border-bottom:1px solid #eee}
+        .factura table.fx-items .n{text-align:right}
+        .factura .fx-ctot{display:flex;justify-content:flex-end;gap:18px;margin-top:6px;font-size:12px}
+        .factura .fx-pays{color:#666;font-size:11px;margin-top:4px}
+        .factura .fx-grand{margin-top:14px;border-top:2px solid #111;padding-top:10px;text-align:right}
+        .factura .fx-debt{font-size:18px;font-weight:800;color:#c0392b;margin-top:2px}
+        .factura .fx-badge{font-size:11px;padding:1px 8px;border-radius:999px}
+      </style>`;
+
+      const creditsHtml = credits.map((s) => {
+        const items = s.items.map((i) => `<tr>
+          <td>${U.escapeHtml(i.product.name)}</td>
+          <td class="n">${i.quantity}</td>
+          <td class="n">${U.money(i.unitPrice)}</td>
+          <td class="n">${U.money(i.total != null ? i.total : i.quantity * i.unitPrice)}</td>
+        </tr>`).join('');
+        const pays = (s.payments && s.payments.length)
+          ? `<div class="fx-pays">Abonos: ${s.payments.map((p) => `${U.date(p.date)} ${U.money(p.amount)}`).join(' · ')}</div>` : '';
+        return `<div class="fx-credit">
+          <div class="fx-credit-head">
+            <span>Crédito ${s.creditNumber ? '#' + s.creditNumber : ''} · ${U.date(s.date)}</span>
+            <span>${estadoBadge(s.status)}${s.dueDate ? ` · Vence ${U.date(s.dueDate)}` : ''}</span>
+          </div>
+          <table class="fx-items">
+            <thead><tr><th>Producto</th><th class="n">Cant.</th><th class="n">V. Unit.</th><th class="n">Subtotal</th></tr></thead>
+            <tbody>${items}</tbody>
+          </table>
+          <div class="fx-ctot"><span>Total ${U.money(s.total)}</span><span>Abonado ${U.money(s.paid)}</span><span><strong>Saldo ${U.money(s.balance)}</strong></span></div>
+          ${pays}
+        </div>`;
+      }).join('');
+
+      const totalCred = credits.reduce((a, s) => a + s.total, 0);
+      const totalPaid = credits.reduce((a, s) => a + s.paid, 0);
+
+      return `${style}<div class="factura">
+        <div class="fx-head">
+          <div><div class="fx-biz">${U.escapeHtml(kioskName || 'Kiosco')}</div><div class="fx-muted">Estado de cuenta · Créditos</div></div>
+          <div class="fx-right"><div><strong>Fecha:</strong> ${U.date(new Date().toISOString())}</div>${h.lastPaymentDate ? `<div class="fx-muted">Último pago: ${U.date(h.lastPaymentDate)}</div>` : ''}</div>
+        </div>
+        <div class="fx-client">
+          <div><strong>Cliente:</strong> ${U.escapeHtml(c.name || '')}</div>
+          <div><strong>CC:</strong> ${U.escapeHtml(c.cc || '—')}</div>
+          <div><strong>Teléfono:</strong> ${U.escapeHtml(c.phone || '—')}</div>
+        </div>
+        ${creditsHtml || '<p class="fx-muted">Sin compras a crédito.</p>'}
+        <div class="fx-grand">
+          <div class="fx-muted">Total en créditos: ${U.money(totalCred)} · Abonado: ${U.money(totalPaid)}</div>
+          <div class="fx-debt">SALDO TOTAL: ${U.money(h.totalDebt)}</div>
+        </div>
+      </div>`;
+    }
+
     async function history(customerId) {
       const h = await API.get(`/credits/customers/${customerId}/history`);
+      const sel = document.getElementById('kioskSelect');
+      const kioskName = (sel && sel.selectedOptions[0] ? sel.selectedOptions[0].textContent : 'Kiosco').trim();
+      const html = invoiceHtml(h, kioskName);
       const box = U.modal({
-        title: `Historial · ${U.escapeHtml(h.customer.name)}`,
+        title: `Factura · ${U.escapeHtml(h.customer.name)}`,
         wide: true,
-        bodyHtml: `
-          <div class="cards">
-            <div class="kpi accent-red"><div class="label">Saldo pendiente</div><div class="value">${U.money(h.totalDebt)}</div></div>
-            <div class="kpi"><div class="label">Último pago</div><div class="value" style="font-size:18px">${h.lastPaymentDate ? U.date(h.lastPaymentDate) : '—'}</div></div>
-          </div>
-          <p class="section-title">Compras a crédito</p>
-          ${U.table(
-            [
-              { key: 'date', label: 'Fecha', render: (r) => U.date(r.date) },
-              { key: 'prods', label: 'Productos', render: (r) => U.escapeHtml(r.items.map((i) => `${i.product.name} x${i.quantity}`).join(', ')) },
-              { key: 'total', label: 'Total', num: true, render: (r) => U.money(r.total) },
-              { key: 'paid', label: 'Abonado', num: true, render: (r) => U.money(r.paid) },
-              { key: 'balance', label: 'Saldo', num: true, render: (r) => U.money(r.balance) },
-              { key: 'status', label: 'Estado', render: (r) => U.statusBadge(r.status) },
-            ],
-            h.sales,
-            { empty: 'Sin compras a crédito.' }
-          )}`,
-        footerHtml: `<button class="btn" data-c>Cerrar</button>`,
+        bodyHtml: html,
+        footerHtml: `<button class="btn" data-c>Cerrar</button><button class="btn primary" data-print>${U.icon('printer')} Imprimir</button>`,
       });
       box.querySelector('[data-c]').onclick = U.closeModal;
+      box.querySelector('[data-print]').onclick = () => U.printHtml(`Factura - ${h.customer.name}`, html);
     }
 
     await load();

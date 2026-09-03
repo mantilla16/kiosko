@@ -136,5 +136,17 @@ const U = (() => {
     w.document.close();
   };
 
-  return { money, num, date, today, escapeHtml, icon, initIcons, el, toast, modal, closeModal, confirm, table, statusBadge, downloadCSV, printTable };
+  // Abrir una ventana con HTML arbitrario (ej. una factura) listo para imprimir o guardar como PDF.
+  const printHtml = (title, innerHtml) => {
+    const w = window.open('', '_blank');
+    if (!w) { toast('Permite las ventanas emergentes para imprimir.', 'error'); return; }
+    w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+      <style>body{font-family:Arial,Helvetica,sans-serif;color:#1a1d24;padding:20px;margin:0}</style>
+      </head><body>${innerHtml}
+      <script>window.onload=function(){window.print();}<\/script>
+      </body></html>`);
+    w.document.close();
+  };
+
+  return { money, num, date, today, escapeHtml, icon, initIcons, el, toast, modal, closeModal, confirm, table, statusBadge, downloadCSV, printTable, printHtml };
 })();

@@ -38,7 +38,7 @@ window.Routes.ventas = {
                 { key: 'creditTotal', label: 'Crédito', num: true, render: (r) => `<span class="text-amber">${U.money(r.creditTotal)}</span>` },
                 { key: 'total', label: 'Total', num: true, render: (r) => `<strong>${U.money(r.total)}</strong>` },
                 { key: 'status', label: 'Estado', render: (r) => r.status === 'APPROVED' ? '<span class="badge green">Registrado</span>' : '<span class="badge amber">Borrador</span>' },
-                { key: 'acc', label: '', render: (r) => `<button class="btn sm" data-view="${r.id}">Ver</button>` },
+                { key: 'acc', label: '', render: (r) => `<button class="btn sm" data-view="${r.id}">Ver</button>${r.status !== 'APPROVED' ? ` <button class="btn sm danger" data-del="${r.id}">Borrar</button>` : ''}` },
               ],
               list,
               { empty: 'Aún no hay registros de ventas. Crea el primero con "Nuevo registro".' }
@@ -47,7 +47,15 @@ window.Routes.ventas = {
         </div>`;
       document.getElementById('btnNew').onclick = () => openForm();
       view.querySelectorAll('[data-view]').forEach((b) => (b.onclick = () => viewDetail(b.dataset.view)));
+      view.querySelectorAll('[data-del]').forEach((b) => (b.onclick = () => removeRecord(b.dataset.del)));
       U.initIcons(view);
+    }
+
+    // Borrar un registro (solo borradores: uno ya registrado movió stock y creó créditos).
+    async function removeRecord(id) {
+      if (!(await U.confirm('¿Eliminar este registro de ventas (borrador)? Esta acción no se puede deshacer.', { danger: true, okText: 'Eliminar' }))) return;
+      try { await API.del('/sales-records/' + id); U.toast('Registro eliminado.', 'success'); load(); }
+      catch (e) { U.toast(e.message, 'error'); }
     }
 
     // Construye una línea de crédito (cantidad + cliente) para un producto.
